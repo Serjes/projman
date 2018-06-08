@@ -1,4 +1,4 @@
-package system.projman;
+package github.serjes;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -98,24 +98,50 @@ public class ManagSystem {
             ResultSet resultSet = statement.executeQuery();
 //            resultSet.
 //            System.out.printf("Row: %d", resultSet.getRow());
-
             while (resultSet.next()) {
 //                String name = resultSet.getString("TaskName");
 //                System.out.printf(">%s%n", name);
                 ret++;
             }
-
-//            Statement statement = connection.createStatement();
-//            ResultSet resultSet = statement.executeQuery("SELECT Projects.ProjName FROM Projects ;");
-//            while (resultSet.next()) {
-////                String projName = resultSet.getString("ProjName");
-////                retArrayList.add(projName);
-//            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 //        System.out.println("getAmountFinishedTask:" + projName);
         return ret;
+    }
+
+    public ArrayList<String> getPersons() {
+        ArrayList<String> retArrayList = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection(URL)) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT Persons.Name FROM Persons ;");
+            while (resultSet.next()) {
+                String projName = resultSet.getString("Name");
+                retArrayList.add(projName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return retArrayList;
+    }
+
+    public ArrayList<String> getUnfinishedTasksOfPerson(String personName) {
+        ArrayList<String> retArrayList = new ArrayList<>();
+        try (Connection connection = DriverManager.getConnection(URL)) {
+            PreparedStatement statement = connection.prepareStatement("select Tasks.taskName from Tasks " +
+                    "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
+            statement.setString(1, personName);
+            ResultSet resultSet = statement.executeQuery();
+//            Statement statement = connection.createStatement();
+//            ResultSet resultSet = statement.executeQuery("select Tasks.taskName from Tasks join Persons ON tasks.personid = persons.personid WHERE persons.name = "Иванов" and Tasks.Finished = 0;");
+            while (resultSet.next()) {
+                String taskName = resultSet.getString("TaskName");
+                retArrayList.add(taskName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return retArrayList;
     }
 
 //    public void userMenu() {
