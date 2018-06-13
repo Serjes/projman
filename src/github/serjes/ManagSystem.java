@@ -2,7 +2,10 @@ package github.serjes;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import static java.lang.System.exit;
 
 public class ManagSystem {
     public static final String URL = "jdbc:sqlite:projects.db";
@@ -18,6 +21,7 @@ public class ManagSystem {
     }
 
     private void createTables() {
+        Long time = System.currentTimeMillis();
         try (Connection connection = DriverManager.getConnection(URL)) {
             Statement statement = connection.createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS Projects");
@@ -40,15 +44,43 @@ public class ManagSystem {
             statement.executeUpdate("INSERT INTO Persons (Name, Phone, Mail) VALUES ('Иванов', '+7(926)1234567', 'ivanov@mail.ru');");
             statement.executeUpdate("INSERT INTO Persons (Name, Phone, Mail) VALUES ('Сидоров', '+7(903)1234567', 'sidorov@mail.ru');");
 
-            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-                    "VALUES ('Наполнение вкладки Операционист', 10000, 5000, 0, 1, 1);");
-            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-                    "VALUES ('Маркировать текст для разных абонентов', 15000, 5000, 0, 2, 3);");
-            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-                    "VALUES ('разные потоки для подключения', 5000, 5000, 1, 2, 3);");
+            PreparedStatement preparedStatement;
+//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
+//                    "VALUES ('Наполнение вкладки Операционист', 10000, 5000, 0, 1, 1);");
+            preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
+                    "Finished, PersonId, ProjId) VALUES ('Наполнение вкладки Операционист', ?, ?, 0, 1, 1);");
+            preparedStatement.setString(1, ((Long) (time - (Long) (Main.DAY_MSEC * 2))).toString());
+            preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 5)).toString());
+            preparedStatement.executeUpdate();
 
+//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
+//                    "VALUES ('Маркировать текст для разных абонентов', 15000, 5000, 0, 2, 3);");
+            preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
+                    "Finished, PersonId, ProjId) VALUES ('Маркировать текст для разных абонентов', ?, ?, 0, 2, 3);");
+            preparedStatement.setString(1, ((Long) (time + (Long) (Main.DAY_MSEC * 7))).toString());
+            preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 7)).toString());
+            preparedStatement.executeUpdate();
+
+//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
+//                    "VALUES ('Разные потоки для подключения', 5000, 5000, 1, 2, 3);");
+            preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
+                    "Finished, PersonId, ProjId) VALUES ('Разные потоки для подключения', ?, ?, 1, 2, 3);");
+            preparedStatement.setString(1, ((Long) (time - (Long) (Main.DAY_MSEC * 7))).toString());
+            preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 3)).toString());
+            preparedStatement.executeUpdate();
+
+//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
+//                    "VALUES ('Дополнительные кнопки', 15000, 5000, 0, 3, 3);");
+            preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, " +
+                    "StartDate, Duration, Finished, PersonId, ProjId) VALUES ('Дополнительные кнопки', ?, ?, 0, " +
+                    "3, 3);");
+            preparedStatement.setString(1, time.toString());
+            preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 7)).toString());
+//            ResultSet resultSet = preparedStatement.executeQuery();
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+            exit(1);
         }
     }
 
@@ -63,8 +95,6 @@ public class ManagSystem {
             while (resultSet.next()) {
                 String projName = resultSet.getString("ProjName");
                 retArrayList.add(projName);
-//                int amount = resultSet.getInt("Amount");
-//                System.out.printf("book: %s, amount: %d%n", name, amount);
             }
 
         } catch (SQLException e) {
@@ -96,17 +126,12 @@ public class ManagSystem {
                     "WHERE Projects.ProjName = ? and Tasks.Finished = 0;");
             statement.setString(1, projName);
             ResultSet resultSet = statement.executeQuery();
-//            resultSet.
-//            System.out.printf("Row: %d", resultSet.getRow());
             while (resultSet.next()) {
-//                String name = resultSet.getString("TaskName");
-//                System.out.printf(">%s%n", name);
                 ret++;
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-//        System.out.println("getAmountFinishedTask:" + projName);
         return ret;
     }
 
@@ -132,8 +157,6 @@ public class ManagSystem {
                     "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
             statement.setString(1, personName);
             ResultSet resultSet = statement.executeQuery();
-//            Statement statement = connection.createStatement();
-//            ResultSet resultSet = statement.executeQuery("select Tasks.taskName from Tasks join Persons ON tasks.personid = persons.personid WHERE persons.name = "Иванов" and Tasks.Finished = 0;");
             while (resultSet.next()) {
                 String taskName = resultSet.getString("TaskName");
                 retArrayList.add(taskName);
@@ -144,6 +167,37 @@ public class ManagSystem {
         return retArrayList;
     }
 
-//    public void userMenu() {
-//    }
+    public ArrayList<String> getTasksToday(long time) {
+        ArrayList<String> retArrayList = new ArrayList<>();
+
+        try (Connection connection = DriverManager.getConnection(URL)) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks;");
+//            PreparedStatement statement = connection.prepareStatement("select Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks " +
+//                    "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
+//            statement.setString(1, personName);
+//            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                String startDate = resultSet.getString("StartDate");
+                long startDateNum = Long.parseLong(startDate);
+                String duration = resultSet.getString("Duration");
+                long durationNum = Long.parseLong(duration);
+                Date date = new Date(time);
+                Date dateStart = new Date(startDateNum);
+                Date dateEnd = new Date(startDateNum + durationNum);
+
+                if (time >= startDateNum && time <= (startDateNum + durationNum)) {
+                    String taskName = resultSet.getString("TaskName");
+                    System.out.println("текущее время: " + date + " Время начала: " + dateStart + " Время конца:" + dateEnd);
+//                    System.out.println("текущее время: " + time + " Время начала: " + startDateNum + " Время конца:" + (startDateNum + durationNum));
+                    retArrayList.add(taskName);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        return retArrayList;
+    }
 }
