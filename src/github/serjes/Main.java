@@ -13,6 +13,8 @@ public class Main {
 
     private static void userMenu(ManagSystem mSystem) {
 
+        long time = System.currentTimeMillis();
+        Date date;
         int anInt;
         int i;
         Scanner scanner;
@@ -23,6 +25,7 @@ public class Main {
             System.out.println("2. Сколько по проекту незавершенных задач");
             System.out.println("3. Какие незавершенные задачи есть у ответственного");
             System.out.println("4. Какие задачи на сегодня и ответственный");
+            System.out.println("5. Ответственные с просроченными задачами");
             anInt = scanner.nextInt();
             switch (anInt) {
                 case 1:
@@ -59,13 +62,8 @@ public class Main {
                     }
                     break;
                 case 4:
-//                    Calendar calendar = Calendar.getInstance();
-//                    System.out.println("Время: " + calendar.getTime());
-                    long time = System.currentTimeMillis();
-                    Date date =  new Date(time); // +1 day
-//                    Date date =  new Date(time + DAY_MSEC); // +1 day
+                    date = new Date(time);
                     System.out.println(date);
-//                    ArrayList<String> tasksToday = mSystem.getTasksToday(time);
                     HashMap<String, String> tasksTodayForPerson = mSystem.getTasksToday(time);
                     System.out.println("Актуальные задачи на сегодня:");
                     if (!tasksTodayForPerson.isEmpty()) {
@@ -76,6 +74,19 @@ public class Main {
                         }
                     } else {
                         System.out.println("Нет задач на сегодня");
+                    }
+                    break;
+                case 5:
+                    date = new Date(time);
+                    System.out.println(date);
+                    HashMap<String,ArrayList<String>> personsWithExpiredTasks = mSystem.getPersonsWithExpiredTasks(time);
+                    if (!personsWithExpiredTasks.isEmpty()) {
+                        i = 0;
+                        for (String person : personsWithExpiredTasks.keySet()) {
+                            System.out.printf("%d. %s  %s %n", ++i, person, personsWithExpiredTasks.get(person).toString());
+                        }
+                    } else {
+                        System.out.println("Нет просроченных задач");
                     }
                     break;
                 default:

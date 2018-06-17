@@ -78,6 +78,14 @@ public class ManagSystem {
             preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 7)).toString());
 //            ResultSet resultSet = preparedStatement.executeQuery();
             preparedStatement.executeUpdate();
+
+            //expired task
+            preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, " +
+                    "StartDate, Duration, Finished, PersonId, ProjId) VALUES ('Покрыть тестами', ?, ?, 0, " +
+                    "3, 3);");
+            preparedStatement.setString(1, ((Long) (time - (Long) (Main.DAY_MSEC * 7))).toString());
+            preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 5)).toString());
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
             exit(1);
@@ -174,7 +182,7 @@ public class ManagSystem {
             Statement statement = connection.createStatement();
 //            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks;");
             ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
-                    "Persons.Name from Tasks join Persons ON tasks.personid = persons.personid;");
+                    "Persons.Name from Tasks JOIN Persons ON tasks.personid = persons.personid;");
 //            PreparedStatement statement = connection.prepareStatement("select Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks " +
 //                    "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
 //            statement.setString(1, personName);
@@ -192,13 +200,40 @@ public class ManagSystem {
                     String taskName = resultSet.getString("TaskName");
 //                    System.out.println("текущее время: " + date + " Время начала: " + dateStart + " Время конца:" + dateEnd);
 //                    retArrayList.add(taskName);
-                    retMap.put(taskName,resultSet.getString("Name"));
+                    retMap.put(taskName, resultSet.getString("Name"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
+        return retMap;
+    }
+
+    public HashMap<String, ArrayList<String>> getPersonsWithExpiredTasks(long time) {
+        HashMap<String, ArrayList<String>> retMap = new HashMap<>();
+        try (Connection connection = DriverManager.getConnection(URL)) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
+                    "Persons.Name, Persons.Phone, Persons.Mail from Tasks JOIN Persons ON tasks.personid = persons.personid " +
+                    "WHERE Tasks.Finished = 0;");
+            while (resultSet.next()) {
+                String startDate = resultSet.getString("StartDate");
+                long startDateNum = Long.parseLong(startDate);
+                String duration = resultSet.getString("Duration");
+                long durationNum = Long.parseLong(duration);
+                if (time > (startDateNum + durationNum)) {
+                    String name = resultSet.getString("Name");
+                    ArrayList<String> details = new ArrayList<>();
+                    details.add(resultSet.getString("Phone"));
+                    details.add(resultSet.getString("Mail"));
+                    details.add(resultSet.getString("taskName"));
+                    retMap.put(name,details);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return retMap;
     }
 }
