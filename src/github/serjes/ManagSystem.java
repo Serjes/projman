@@ -2,7 +2,6 @@ package github.serjes;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 import static java.lang.System.exit;
@@ -45,38 +44,29 @@ public class ManagSystem {
             statement.executeUpdate("INSERT INTO Persons (Name, Phone, Mail) VALUES ('Сидоров', '+7(903)1234567', 'sidorov@mail.ru');");
 
             PreparedStatement preparedStatement;
-//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-//                    "VALUES ('Наполнение вкладки Операционист', 10000, 5000, 0, 1, 1);");
             preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
                     "Finished, PersonId, ProjId) VALUES ('Наполнение вкладки Операционист', ?, ?, 0, 1, 1);");
             preparedStatement.setString(1, ((Long) (time - (Long) (Main.DAY_MSEC * 2))).toString());
             preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 5)).toString());
             preparedStatement.executeUpdate();
 
-//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-//                    "VALUES ('Маркировать текст для разных абонентов', 15000, 5000, 0, 2, 3);");
             preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
                     "Finished, PersonId, ProjId) VALUES ('Маркировать текст для разных абонентов', ?, ?, 0, 2, 3);");
             preparedStatement.setString(1, ((Long) (time + (Long) (Main.DAY_MSEC * 7))).toString());
             preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 7)).toString());
             preparedStatement.executeUpdate();
 
-//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-//                    "VALUES ('Разные потоки для подключения', 5000, 5000, 1, 2, 3);");
             preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, StartDate, Duration, " +
                     "Finished, PersonId, ProjId) VALUES ('Разные потоки для подключения', ?, ?, 1, 2, 3);");
             preparedStatement.setString(1, ((Long) (time - (Long) (Main.DAY_MSEC * 7))).toString());
             preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 3)).toString());
             preparedStatement.executeUpdate();
 
-//            statement.executeUpdate("INSERT INTO Tasks (TaskName, StartDate, Duration, Finished, PersonId, ProjId) " +
-//                    "VALUES ('Дополнительные кнопки', 15000, 5000, 0, 3, 3);");
             preparedStatement = connection.prepareStatement("INSERT INTO Tasks (TaskName, " +
                     "StartDate, Duration, Finished, PersonId, ProjId) VALUES ('Дополнительные кнопки', ?, ?, 0, " +
                     "3, 3);");
             preparedStatement.setString(1, time.toString());
             preparedStatement.setString(2, ((Long) (Main.DAY_MSEC * 7)).toString());
-//            ResultSet resultSet = preparedStatement.executeQuery();
             preparedStatement.executeUpdate();
 
             //expired task
@@ -95,9 +85,8 @@ public class ManagSystem {
     public ArrayList<String> getProjectsInWork() {
         ArrayList<String> retArrayList = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(URL)) {
-//            PreparedStatement statement = connection.prepareStatement("SELECT * FROM Books WHERE Amount = ?;");
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT Projects.ProjName FROM Projects join Tasks\n" +
+            ResultSet resultSet = statement.executeQuery("SELECT DISTINCT Projects.ProjName FROM Projects join Tasks\n" +
                     "ON tasks.projid = projects.projid\n" +
                     "where Tasks.Finished = 0;");
             while (resultSet.next()) {
@@ -176,30 +165,18 @@ public class ManagSystem {
     }
 
     public HashMap<String, String> getTasksToday(long time) {
-//        ArrayList<String> retArrayList = new ArrayList<>();
         HashMap<String, String> retMap = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(URL)) {
             Statement statement = connection.createStatement();
-//            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks;");
             ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
                     "Persons.Name from Tasks JOIN Persons ON tasks.personid = persons.personid;");
-//            PreparedStatement statement = connection.prepareStatement("select Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks " +
-//                    "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
-//            statement.setString(1, personName);
-//            ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 String startDate = resultSet.getString("StartDate");
                 long startDateNum = Long.parseLong(startDate);
                 String duration = resultSet.getString("Duration");
                 long durationNum = Long.parseLong(duration);
-//                Date date = new Date(time);
-//                Date dateStart = new Date(startDateNum);
-//                Date dateEnd = new Date(startDateNum + durationNum);
-
                 if (time >= startDateNum && time <= (startDateNum + durationNum)) {
                     String taskName = resultSet.getString("TaskName");
-//                    System.out.println("текущее время: " + date + " Время начала: " + dateStart + " Время конца:" + dateEnd);
-//                    retArrayList.add(taskName);
                     retMap.put(taskName, resultSet.getString("Name"));
                 }
             }

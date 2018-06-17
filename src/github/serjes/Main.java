@@ -3,7 +3,6 @@ package github.serjes;
 import java.util.*;
 
 public class Main {
-//    public static int DAY_MSEC = 86400000; // 24 * 60 * 60
     public static Long DAY_MSEC = (Long)(24L * 60 * 60 * 1000);
     public static void main(String[] args) {
         ManagSystem managSystem = new ManagSystem();
@@ -69,7 +68,6 @@ public class Main {
                     if (!tasksTodayForPerson.isEmpty()) {
                         i = 0;
                         for (String task : tasksTodayForPerson.keySet()) {
-//                            System.out.println(task);
                             System.out.printf("%d. %s (ответственный - %s) %n", ++i, task, tasksTodayForPerson.get(task));
                         }
                     } else {

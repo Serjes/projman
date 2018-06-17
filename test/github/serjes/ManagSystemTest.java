@@ -29,7 +29,6 @@ public class ManagSystemTest {
 //        correctAnswer.containsAll(projsInWork);
         Assert.assertTrue("containsAll", correctAnswer.containsAll(projsInWork));
         Assert.assertEquals(correctAnswer.size(),projsInWork.size());
-
     }
 
     @Test
