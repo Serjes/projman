@@ -3,7 +3,7 @@ package github.serjes;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 
 import static java.lang.System.exit;
 
@@ -167,12 +167,14 @@ public class ManagSystem {
         return retArrayList;
     }
 
-    public ArrayList<String> getTasksToday(long time) {
-        ArrayList<String> retArrayList = new ArrayList<>();
-
+    public HashMap<String, String> getTasksToday(long time) {
+//        ArrayList<String> retArrayList = new ArrayList<>();
+        HashMap<String, String> retMap = new HashMap<>();
         try (Connection connection = DriverManager.getConnection(URL)) {
             Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks;");
+//            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks;");
+            ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
+                    "Persons.Name from Tasks join Persons ON tasks.personid = persons.personid;");
 //            PreparedStatement statement = connection.prepareStatement("select Tasks.taskName, Tasks.StartDate, Tasks.Duration from Tasks " +
 //                    "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
 //            statement.setString(1, personName);
@@ -182,22 +184,21 @@ public class ManagSystem {
                 long startDateNum = Long.parseLong(startDate);
                 String duration = resultSet.getString("Duration");
                 long durationNum = Long.parseLong(duration);
-                Date date = new Date(time);
-                Date dateStart = new Date(startDateNum);
-                Date dateEnd = new Date(startDateNum + durationNum);
+//                Date date = new Date(time);
+//                Date dateStart = new Date(startDateNum);
+//                Date dateEnd = new Date(startDateNum + durationNum);
 
                 if (time >= startDateNum && time <= (startDateNum + durationNum)) {
                     String taskName = resultSet.getString("TaskName");
-                    System.out.println("текущее время: " + date + " Время начала: " + dateStart + " Время конца:" + dateEnd);
-//                    System.out.println("текущее время: " + time + " Время начала: " + startDateNum + " Время конца:" + (startDateNum + durationNum));
-                    retArrayList.add(taskName);
+//                    System.out.println("текущее время: " + date + " Время начала: " + dateStart + " Время конца:" + dateEnd);
+//                    retArrayList.add(taskName);
+                    retMap.put(taskName,resultSet.getString("Name"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-
-        return retArrayList;
+        return retMap;
     }
 }

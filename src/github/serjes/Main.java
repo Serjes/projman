@@ -1,9 +1,6 @@
 package github.serjes;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 //    public static int DAY_MSEC = 86400000; // 24 * 60 * 60
@@ -55,6 +52,7 @@ public class Main {
                     if (tasks.isEmpty()){
                         System.out.println("Нет незавершенных задач");
                     } else {
+                        i = 0;
                         for (String task : tasks) {
                             System.out.printf("%d. %s %n", ++i, task);
                         }
@@ -62,21 +60,19 @@ public class Main {
                     break;
                 case 4:
 //                    Calendar calendar = Calendar.getInstance();
-//
 //                    System.out.println("Время: " + calendar.getTime());
                     long time = System.currentTimeMillis();
                     Date date =  new Date(time); // +1 day
 //                    Date date =  new Date(time + DAY_MSEC); // +1 day
                     System.out.println(date);
-
-
-                    ArrayList<String> tasksToday = mSystem.getTasksToday(time);
-                    System.out.println("Задачи на сегодня:");
-                    if (!tasksToday.isEmpty()) {
+//                    ArrayList<String> tasksToday = mSystem.getTasksToday(time);
+                    HashMap<String, String> tasksTodayForPerson = mSystem.getTasksToday(time);
+                    System.out.println("Актуальные задачи на сегодня:");
+                    if (!tasksTodayForPerson.isEmpty()) {
                         i = 0;
-                        for (String task : tasksToday) {
-                            System.out.println(task);
-//                            System.out.printf("%d. %s %n", ++i, task);
+                        for (String task : tasksTodayForPerson.keySet()) {
+//                            System.out.println(task);
+                            System.out.printf("%d. %s (ответственный - %s) %n", ++i, task, tasksTodayForPerson.get(task));
                         }
                     } else {
                         System.out.println("Нет задач на сегодня");
