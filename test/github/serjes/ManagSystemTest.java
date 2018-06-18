@@ -12,12 +12,14 @@ public class ManagSystemTest {
     ManagSystem mSystem;
     ArrayList<String> allProjects;
     ArrayList<String> allPersons;
+    long time;
 
     @Before
     public void setUp() throws Exception {
         mSystem = new ManagSystem(true);
         allProjects = new ArrayList<>(Arrays.asList("ATM", "Project management system", "JabaChat"));
         allPersons = new ArrayList<>(Arrays.asList("Валуев", "Иванов", "Сидоров"));
+        time = System.currentTimeMillis();
     }
 
     @Test
@@ -72,7 +74,7 @@ public class ManagSystemTest {
                     correctAnswers.get(person).add("Покрыть тестами");
                     break;
             }
-            System.out.println(person + correctAnswers.get(person).toString());
+//            System.out.println(person + correctAnswers.get(person).toString());
         }
         for (int i = 0; i < allPersons.size(); i++) {
             ArrayList<String> tasks = mSystem.getUnfinishedTasksOfPerson(allPersons.get(i));
@@ -83,7 +85,6 @@ public class ManagSystemTest {
 
     @Test
     public void getTasksToday() throws Exception {
-        long time = System.currentTimeMillis();
         HashMap<String, String> correctAnswer = new HashMap<>();
         correctAnswer.put("Наполнение вкладки Операционист", "Валуев");
 //        correctAnswer.put("Наполнение вкладки Операционист", " ");
@@ -94,6 +95,10 @@ public class ManagSystemTest {
 
     @Test
     public void getPersonsWithExpiredTasks() throws Exception {
+        HashMap<String,ArrayList<String>> correctAnswer = new HashMap<>();
+        correctAnswer.put("Сидоров", new ArrayList<>(Arrays.asList("+7(903)1234567","sidorov@mail.ru","Покрыть тестами")));
+        HashMap<String,ArrayList<String>> personsWithExpiredTasks = mSystem.getPersonsWithExpiredTasks(time);
+        assertTrue("Maps are not equals", correctAnswer.equals(personsWithExpiredTasks));
     }
 
 }
