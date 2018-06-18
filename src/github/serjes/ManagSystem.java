@@ -7,21 +7,38 @@ import java.util.HashMap;
 import static java.lang.System.exit;
 
 public class ManagSystem {
-    public static final String URL = "jdbc:sqlite:projects.db";
+    private String urlDB;// = "jdbc:sqlite:projects.db";
 
-    public void init() {
+    public void initDriver() {
         try {
             Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
             System.out.println("Not found JDBC: " + e.toString());
         }
+    }
+
+    public ManagSystem() {
+        urlDB = "jdbc:sqlite:projects.db";
+        initDriver();
         createTables();
+    }
+
+    public ManagSystem(boolean test) {
+        if (test){
+            urlDB = "jdbc:sqlite:projects_test.db";
+            initDriver();
+            createTestTables();
+        }
+    }
+
+    private void createTestTables() {
+        createTables();
+        //TODO can create Tables specifically for Testing
     }
 
     private void createTables() {
         Long time = System.currentTimeMillis();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             statement.executeUpdate("DROP TABLE IF EXISTS Projects");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS Projects (ProjId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
@@ -84,7 +101,7 @@ public class ManagSystem {
 
     public ArrayList<String> getProjectsInWork() {
         ArrayList<String> retArrayList = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT DISTINCT Projects.ProjName FROM Projects join Tasks\n" +
                     "ON tasks.projid = projects.projid\n" +
@@ -102,7 +119,7 @@ public class ManagSystem {
 
     public ArrayList<String> getProjects() {
         ArrayList<String> retArrayList = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT Projects.ProjName FROM Projects ;");
             while (resultSet.next()) {
@@ -115,9 +132,9 @@ public class ManagSystem {
         return retArrayList;
     }
 
-    public int getAmountFinishedTask(String projName) {
+    public int getAmountUnfinishedTask(String projName) {
         int ret = 0;
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             PreparedStatement statement = connection.prepareStatement("SELECT * FROM Tasks join Projects\n" +
                     "ON Tasks.ProjId = Projects.ProjId\n" +
                     "WHERE Projects.ProjName = ? and Tasks.Finished = 0;");
@@ -134,7 +151,7 @@ public class ManagSystem {
 
     public ArrayList<String> getPersons() {
         ArrayList<String> retArrayList = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT Persons.Name FROM Persons ;");
             while (resultSet.next()) {
@@ -149,7 +166,7 @@ public class ManagSystem {
 
     public ArrayList<String> getUnfinishedTasksOfPerson(String personName) {
         ArrayList<String> retArrayList = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             PreparedStatement statement = connection.prepareStatement("select Tasks.taskName from Tasks " +
                     "join Persons ON tasks.personid = persons.personid WHERE persons.name = ? and Tasks.Finished = 0;");
             statement.setString(1, personName);
@@ -166,7 +183,7 @@ public class ManagSystem {
 
     public HashMap<String, String> getTasksToday(long time) {
         HashMap<String, String> retMap = new HashMap<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
                     "Persons.Name from Tasks JOIN Persons ON tasks.personid = persons.personid;");
@@ -189,7 +206,7 @@ public class ManagSystem {
 
     public HashMap<String, ArrayList<String>> getPersonsWithExpiredTasks(long time) {
         HashMap<String, ArrayList<String>> retMap = new HashMap<>();
-        try (Connection connection = DriverManager.getConnection(URL)) {
+        try (Connection connection = DriverManager.getConnection(urlDB)) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT Tasks.taskName, Tasks.StartDate, Tasks.Duration, " +
                     "Persons.Name, Persons.Phone, Persons.Mail from Tasks JOIN Persons ON tasks.personid = persons.personid " +

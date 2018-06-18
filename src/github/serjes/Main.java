@@ -6,7 +6,7 @@ public class Main {
     public static Long DAY_MSEC = (Long)(24L * 60 * 60 * 1000);
     public static void main(String[] args) {
         ManagSystem managSystem = new ManagSystem();
-        managSystem.init();
+//        managSystem.init();
         userMenu(managSystem);
     }
 
@@ -39,7 +39,7 @@ public class Main {
                         System.out.printf("%d. %s %n", ++i, name);
                     }
                     i = scanner.nextInt();
-                    int amountFinishedTask = mSystem.getAmountFinishedTask(projs.get(--i));
+                    int amountFinishedTask = mSystem.getAmountUnfinishedTask(projs.get(--i));
                     System.out.println("Количество незавершенных задач по этому проекту: " + amountFinishedTask);
                     break;
                 case 3:
